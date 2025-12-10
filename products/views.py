@@ -3,11 +3,22 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Product
 from .serializers import ProductSerializer
+from django.db.models import Q
 
 @api_view(['GET', 'POST'])
 def products(request):
     if request.method == 'GET':
-        products = Product.objects.all()
+        search = request.query_params.get('search', None)
+        limit = int(request.GET.get('limit',10))
+        offset = int(request.GET.get('offset',0))
+        
+        if search:
+            products = Product.objects.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+            )
+        else:
+            products = Product.objects.all()[offset:offset+limit]
+            
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
