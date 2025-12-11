@@ -27,10 +27,11 @@ SECRET_KEY = 'django-insecure-^@^67_61^k6nuv3w197h&p7k$%uduz*1m6*0iy1!e$w)&0huw#
 DEBUG = True
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['azurestaging3.betterhalf.ai','127.0.0.1','4.240.77.164']
 DB_NAME = config('DB_NAME')
 DB_USER = config('DB_USER')
 DB_PASSWORD = config('DB_PASSWORD')
+DB_HOST=config('DB_HOST',default='localhost')
 
 # Application definition
 
@@ -90,7 +91,7 @@ DATABASES = {
         "NAME": DB_NAME,
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
-        "HOST": "localhost",
+        "HOST": DB_HOST,
         "PORT": "5432",
     }
 }
