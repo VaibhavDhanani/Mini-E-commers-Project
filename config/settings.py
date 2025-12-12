@@ -25,8 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="").split(",")
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host] 
 
-ALLOWED_HOSTS = ['azurestaging3.betterhalf.ai','127.0.0.1','4.240.77.164']
+# print(ALLOWED_HOSTS)
 DB_NAME = config('DB_NAME',default='e-commers-db')
 DB_USER = config('DB_USER',default='postgres')
 DB_PASSWORD = config('DB_PASSWORD',default='pwd@123')
@@ -79,7 +81,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Cache
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        },
+        "TIMEOUT": 300,
+    }   
+}
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
