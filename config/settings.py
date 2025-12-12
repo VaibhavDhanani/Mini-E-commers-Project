@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from decouple import config
+from django.template.defaultfilters import default
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,17 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^@^67_61^k6nuv3w197h&p7k$%uduz*1m6*0iy1!e$w)&0huw#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 
 ALLOWED_HOSTS = ['azurestaging3.betterhalf.ai','127.0.0.1','4.240.77.164']
-DB_NAME = config('DB_NAME')
-DB_USER = config('DB_USER')
-DB_PASSWORD = config('DB_PASSWORD')
+DB_NAME = config('DB_NAME',default='e-commers-db')
+DB_USER = config('DB_USER',default='postgres')
+DB_PASSWORD = config('DB_PASSWORD',default='pwd@123')
 DB_HOST=config('DB_HOST',default='localhost')
+DB_PORT=config('DB_PORT',default=5432,cast=int)
+DEBUG = config('DEBUG',default=True,cast=bool)
+SECRET_KEY = config('SECRET_KRY',default='django-insecure-^@^67_61^k6nuv3w197h&p7k$%uduz*1m6*0iy1!e$w)&0huw#')
 
 # Application definition
 
@@ -92,7 +94,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        "PORT": "5432",
+        "PORT": DB_PORT,
     }
 }
 
@@ -132,3 +134,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [ BASE_DIR / 'static' ]
