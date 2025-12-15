@@ -36,6 +36,9 @@ DB_HOST=config('DB_HOST',default='localhost')
 DB_PORT=config('DB_PORT',default=5432,cast=int)
 DEBUG = config('DEBUG',default=True,cast=bool)
 SECRET_KEY = config('SECRET_KRY',default='django-insecure-^@^67_61^k6nuv3w197h&p7k$%uduz*1m6*0iy1!e$w)&0huw#')
+ELASTIC_HOST=config('ELASTIC_HOST',default='https:localhost:9200')
+ELASTIC_USER=config('ELASTIC_USER',default='elastic')
+ELASTIC_PASSWORD=config('ELASTIC_PASSWORD')
 
 # Application definition
 
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_elasticsearch_dsl',
     'users',
     'products',
     'orders',
@@ -96,9 +100,18 @@ CACHES = {
         "TIMEOUT": 300,
     }   
 }
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': ELASTIC_HOST,
+        'http_auth': (ELASTIC_USER, ELASTIC_PASSWORD),
+        'verify_certs': False,   # for development environment only
+    }
+}
+
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',

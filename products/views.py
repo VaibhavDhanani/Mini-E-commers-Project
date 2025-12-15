@@ -1,11 +1,57 @@
+from django.core.cache import cache
+from django.db.models import Q, Case, When
 from rest_framework import status
+
+from utils.utils import BaseAPIView, rate_limit
+
+from .documents import ProductDocument, log_search
 from .models import Product
 from .serializers import ProductSerializer
-from django.db.models import Q
-from utils.utils import BaseAPIView, rate_limit
-from django.core.cache import cache
 
 class ProductListCreateAPIView(BaseAPIView):
+    
+    def search_products(self, query, offset=0, limit=10):
+        search = ProductDocument.search()
+        search = search.query(
+            "bool",
+            should=[
+                {
+                    "match": {
+                        "name": {
+                            "query": query,
+                            "fuzziness": "AUTO",
+                            "boost": 3
+                        }
+                    }
+                },
+                {
+                    "match": {
+                        "description": {
+                            "query": query,
+                            "fuzziness": "AUTO",
+                            "boost": 1
+                        }
+                    }
+                }
+            ],
+            minimum_should_match=1
+        )
+
+        search = search[offset:offset + limit]
+
+        response = search.execute()
+        hits = response.hits
+        ids = [int(hit.meta.id) for hit in hits]
+        
+        if not ids:
+            return Product.objects.none()
+        preserved_order = Case(
+            *[When(id=pk, then=pos) for pos, pk in enumerate(ids)]
+        )
+        products=Product.objects.filter(id__in=ids).order_by(preserved_order)
+        log_search(query,products)
+        return products
+
     
     @rate_limit(max_requests=10,time_window=60)
     def get(self,request):
@@ -23,9 +69,7 @@ class ProductListCreateAPIView(BaseAPIView):
             return self.success_response(cached_data)
             
         if search:
-            products = Product.objects.filter(
-                Q(name__icontains=search) | Q(description__icontains=search)
-            )
+            products = self.search_products(search)
         else:
             products = Product.objects.all()[offset:offset+limit]
             
