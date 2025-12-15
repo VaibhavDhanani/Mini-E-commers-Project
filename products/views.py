@@ -1,15 +1,13 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from .models import Product
 from .serializers import ProductSerializer
 from django.db.models import Q
-import redis
-from utils.utils import BaseAPIView
-import requests
+from utils.utils import BaseAPIView, rate_limit
 from django.core.cache import cache
 
 class ProductListCreateAPIView(BaseAPIView):
+    
+    @rate_limit(max_requests=10,time_window=60)
     def get(self,request):
         search = request.query_params.get('search', None)
         limit = int(request.GET.get('limit',1000))
@@ -43,29 +41,6 @@ class ProductListCreateAPIView(BaseAPIView):
             return self.success_response(data=serializer.data,status_code =status.HTTP_201_CREATED)
         return self.failure_response(data=serializer.errors)
     
-  
-        response = requests.get('https://dummyjson.com/products?limit=194')
-        data = response.json()            # convert API response to Python dict
-        products = data.get('products', [])
-        count=0
-        for product in products:
-            new_product = {
-                "name": product.get("title"),        # dummyjson uses "title", not "name"
-                "description": product.get("description"),
-                "price": product.get("price")
-            }
-
-            serializer = ProductSerializer(data=new_product)
-
-            if serializer.is_valid():
-                serializer.save()
-                count+=1
-            else:
-                print(serializer.errors)  # optional: log errors
-
-        return Response({"message": f"Products {count} added successfully!"})
-
-            
         
     
 class ProductDetailAPIView(BaseAPIView):
